@@ -1,0 +1,293 @@
+import pygame
+pygame.init()
+pygame.font.init()
+l = 1366
+b = 720
+win = pygame.display.set_mode((l,b))
+
+pygame.display.set_caption ("BU Saga")
+clock = pygame.time.Clock()
+
+walkRight = [pygame.image.load('R1E.png'), pygame.image.load('R2E.png'), pygame.image.load('R3E.png'), pygame.image.load('R4E.png'), pygame.image.load('R5E.png'), pygame.image.load('R6E.png'), pygame.image.load('R7E.png'), pygame.image.load('R8E.png'), pygame.image.load('R9E.png'), pygame.image.load('R10E.png'), pygame.image.load('R11E.png')]
+walkLeft = [pygame.image.load('L1E.png'), pygame.image.load('L2E.png'), pygame.image.load('L3E.png'), pygame.image.load('L4E.png'), pygame.image.load('L5E.png'), pygame.image.load('L6E.png'), pygame.image.load('L7E.png'), pygame.image.load('L8E.png'), pygame.image.load('L9E.png'), pygame.image.load('L10E.png'), pygame.image.load('L11E.png')]
+
+bg = pygame.image.load("IMG.jpg").convert()
+char = pygame.image.load('standingE.png')
+zmb = pygame.image.load('standing.png')
+music = pygame.mixer.music.load('horr1.mp3')
+pygame.mixer.music.play(-1)
+
+score1 = 0         
+score2 = 0
+
+class hero(object):
+    def __init__(self,x,y,w,h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.p = 5
+        self.jump = False
+        self.left = False
+        self.right = False
+        self.wk = 0
+        self.j = 8
+        self.health1 = 2
+        self.standing = True
+        self.visible1 = True
+        self.hitbox = (self.x + 17, self.y + 11, 52, 84)
+        
+    def show(self, win):
+        if self.visible1:
+            if self.wk + 1 >= 33:
+                self.wk = 0
+            if self.left:
+                win.blit(walkLeft[self.wk//3], (self.x,self.y))
+                self.wk += 1
+            elif self.right:
+                win.blit(walkRight[self.wk//3], (self.x,self.y))
+                self.wk += 1
+            else:
+                win.blit(char, (self.x,self.y))
+            pygame.draw.rect(win, (255,0,0), (self.hitbox[0], self.hitbox[1] - 20, 50, 10))
+            pygame.draw.rect(win, (0,128,0), (self.hitbox[0], self.hitbox[1] - 20, 50 - (5 * (8 - self.health1)), 10))
+            self.hitbox = (self.x + 17, self.y + 11, 52, 84)
+    
+    def hit(self):
+        self.jump = False
+        if self.health1 >= 0:
+            self.health1 -= 1
+        else:   
+            self.visible1 = False
+            font1 = pygame.font.SysFont('Chiller', 160)
+            text = font1.render('GAME OVER HERO WON', False, (125,0,0))
+            bg.blit(text,(30,30))
+            self.j = 8
+        self.x = 50
+        self.y = 390
+        self.wk = 0
+        pygame.display.update()
+
+                   
+class bull(object):
+        def __init__(self, sx, sy, r, c, f):
+            self.sx = sx
+            self.sy = sy
+            self.r = r
+            self.c = c
+            self.f = f
+            self.s = 8 * f
+
+        def show(self,win):
+            pygame.draw.circle(win, self.c, (self.sx,self.sy), self.r)
+
+
+class enemy(hero):
+    i=1
+    walkRight = [pygame.image.load('R1.png'), pygame.image.load('R2.png'), pygame.image.load('R3.png'), pygame.image.load('R4.png'), pygame.image.load('R5.png'), pygame.image.load('R6.png'), pygame.image.load('R7.png'), pygame.image.load('R8.png'), pygame.image.load('R9.png')]
+    walkLeft = [pygame.image.load('L1.png'), pygame.image.load('L2.png'), pygame.image.load('L3.png'), pygame.image.load('L4.png'), pygame.image.load('L5.png'), pygame.image.load('L6.png'), pygame.image.load('L7.png'), pygame.image.load('L8.png'), pygame.image.load('L9.png')]
+    def __init__(self, x, y, w, h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.wk = 0
+        self.p = 5
+        self.j = 8
+        self.jump = False
+        self.left = False
+        self.right = False
+        self.hitbox = (self.x + 17, self.y + 2, 54, 84)
+        self.health2 = 9
+        self.visible2 = True
+
+    def show(self, win):
+        if self.visible2:
+            if self.wk + 1 >= 27:
+                self.wk = 0         
+            if self.right:
+                win.blit(self.walkRight[self.wk//3], (self.x,self.y))
+                self.wk += 1
+            elif self.left:
+                win.blit(self.walkLeft[self.wk//3], (self.x,self.y))
+                self.wk += 1
+            else:
+                win.blit(zmb, (self.x,self.y))
+            pygame.draw.rect(win, (255,0,0), (self.hitbox[0], self.hitbox[1] - 20, 50, 10))
+            pygame.draw.rect(win, (0,128,0), (self.hitbox[0], self.hitbox[1] - 20, 50 - (5 * (9 - self.health2)), 10))
+            self.hitbox = (self.x + 17, self.y + 2, 48, 84)
+  
+    def hit(self):
+        if self.health2 > 0:
+            self.health2 -= 1
+        else:
+            pygame.mixer.music.stop
+            self.visible2 = False
+            self.visible1 = False
+            font1 = pygame.font.SysFont('Chiller', 120)
+            text = font1.render('GAME OVER ZOMBIE WON', False, (125,0,0))
+            bg.blit(text,(30,30))
+            music = pygame.mixer.music.load('horr.mp3')
+            pygame.mixer.music.play(-1)
+            print ('survival time',int(round(pygame.time.get_ticks()/1000)),'sec')
+                    
+            self.j = 8
+        self.x = 50
+        self.y = 400
+        self.wk = 0
+        pygame.display.update()
+
+
+def draw():
+    global wk
+    win.blit(bg,(0,0))
+    ch.show(win)
+    gb.show(win)
+    for i in gn:
+        i.show(win)
+    pygame.display.update()
+
+
+font = pygame.font.SysFont('comicsans', 30, True)
+ch = hero(580, 390, 100, 100)
+gb = enemy(50, 400, 100, 100)
+shootLoop = 0
+shootLoop2 = 0
+gn = []
+gp = []
+run = True
+while run:
+    pygame.time.delay(50)
+    
+    if gb.visible2 == True:
+        if ch.hitbox[1] < gb.hitbox[1] + gb.hitbox[3] and ch.hitbox[1] + ch.hitbox[3] > gb.hitbox[1]:
+            if ch.hitbox[0] + ch.hitbox[2] > gb.hitbox[0] and ch.hitbox[0] < gb.hitbox[0] + gb.hitbox[2]:
+                ch.hit()
+    if ch.visible1 == True:
+        if gb.hitbox[1] < ch.hitbox[1] + ch.hitbox[3] and gb.hitbox[1] + ch.hitbox[3] > ch.hitbox[1]:
+            if gb.hitbox[0] + gb.hitbox[2] > ch.hitbox[0] and gb.hitbox[0] < ch.hitbox[0] + ch.hitbox[2]:
+                gb.hit()
+
+    if shootLoop > 0:
+        shootLoop += 1
+    if shootLoop > 3:
+        shootLoop = 0
+
+    if shootLoop2 > 0:
+        shootLoop2 += 1
+    if shootLoop2 > 3:
+        shootLoop2 = 0
+
+    for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                           run = False
+            
+    for i in gn:
+        if i.sy - i.r < gb.hitbox[1] + gb.hitbox[3] and i.sy + i.r > gb.hitbox[1]:
+            if i.sx + i.r > gb.hitbox[0] and i.sx - i.r < gb.hitbox[0] + gb.hitbox[2]:
+                gb.hit()
+                score2 +=1
+                gn.pop(gn.index(i))
+        if i.sx < l and i.sx > 0:
+            i.sx += i.s
+        else:
+            gn.pop(gn.index(i))
+            
+    for i in gp:
+        if i.sy - i.r < ch.hitbox[1] + ch.hitbox[3] and i.sy + i.r > ch.hitbox[1]:
+            if i.sx + i.r > ch.hitbox[0] and i.sx - i.r < ch.hitbox[0] + ch.hitbox[2]:
+                ch.hit()
+                score1 +=1
+                gp.pop(gp.index(i))
+        if i.sx < l and i.sx > 0:
+            i.sx += i.s
+        else:
+            gp.pop(gp.index(i))
+            
+    keys = pygame.key.get_pressed()
+#player 1
+    if keys[pygame.K_SPACE] and shootLoop == 0:
+        if ch.left:
+            f = -1
+        else:
+            f = 1
+        if len(gn) < 5:
+            gn.append(bull((ch.x + ch.w //2), (ch.y + ch.h//2), 6, (0,0,0), f))
+        shootLoop = 1
+        
+
+    if keys[pygame.K_LEFT] and ch.x > ch.p:
+        ch.x -= ch.p
+        ch.left = True
+        ch.right = False
+        ch.standing = False
+
+    elif keys[pygame.K_RIGHT] and ch.x < l - ch.w:
+        ch.x += ch.p
+        ch.left = False
+        ch.right = True
+        ch.standing = False
+
+    else:
+        ch.standing = False
+        ch.wk = 0 
+
+    if (ch.jump == False):
+        if keys[pygame.K_UP]:
+            ch.jump = True
+            ch.left = False
+            ch.right = False
+            ch.standing = False
+            ch.wk = 0 
+
+    else:
+        if ch.j >= -8:
+            n = 1
+            if ch.j < 0:
+                n = -1
+            ch.y -= (ch.j ** 2) * n
+            ch.j -= 1
+        else:
+            ch.jump = False
+            ch.j = 8
+
+#player 2
+        
+
+    if keys[pygame.K_a] and gb.x > gb.p:
+        gb.x -= gb.p
+        gb.left = True
+        gb.right = False
+        gb.standing = False
+
+    elif keys[pygame.K_d] and gb.x < l - gb.w:
+        gb.x += gb.p
+        gb.left = False
+        gb.right = True
+        gb.standing = False
+
+    else:
+        gb.standing = False
+        gb.wk = 0 
+
+    if (gb.jump == False):
+        if keys[pygame.K_w]:
+            gb.jump = True
+            gb.left = False
+            gb.right = False
+            gb.standing = False
+            gb.wk = 0 
+
+    else:
+        if gb.j >= -8:
+            n = 1
+            if gb.j < 0:
+                n = -1
+            gb.y -= (gb.j ** 2) * n
+            gb.j -= 1
+        else:
+            gb.jump = False
+            gb.j = 8
+            
+    draw()
+pygame.quit()
